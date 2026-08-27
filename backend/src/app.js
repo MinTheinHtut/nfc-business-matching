@@ -45,13 +45,11 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      httpOnly: true,
-      // Netlify and the hosted API use different sites, so production cookies
-      // must explicitly opt in to cross-site credentialed requests over HTTPS.
-      sameSite: isProduction ? 'none' : 'lax',
-      secure: isProduction,
-      maxAge: sessionLifetimeMs,
-    },
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 1000 * 60 * 60 * 8,
+},
   }),
 );
 
