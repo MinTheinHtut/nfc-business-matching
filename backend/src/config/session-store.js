@@ -1,8 +1,7 @@
 import session from 'express-session';
 import expressMySqlSession from 'express-mysql-session';
 import pool from './database.js';
-
-export const sessionLifetimeMs = 1000 * 60 * 60 * 8;
+import { sessionLifetimeMs } from './session-cookie.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const storeMode = (process.env.SESSION_STORE || 'mysql').toLowerCase();

@@ -126,7 +126,7 @@ Configure these environment variables in the hosting dashboard:
 - `DB_SSL` and `DB_SSL_CA_PATH`
 - `SESSION_SECRET` set to a strong, unique production value
 - `SESSION_STORE=mysql`
-- `FRONTEND_URL=https://nfc-business-matching.netlify.app`
+- `FRONTEND_URL=https://s-matching.netlify.app`
 
 The server listens on `0.0.0.0` and the configured `PORT`. `GET /api/health`
 checks the Node service without contacting MySQL; `GET /api/db-test` separately
@@ -195,7 +195,7 @@ DB_SSL=true
 DB_SSL_CA_PATH=/etc/secrets/aiven-ca.pem
 SESSION_SECRET=<strong random secret>
 SESSION_STORE=mysql
-FRONTEND_URL=https://nfc-business-matching.netlify.app
+FRONTEND_URL=https://s-matching.netlify.app
 ```
 
 `/api/health` is Render's service health check and intentionally does not contact

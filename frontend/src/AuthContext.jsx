@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { apiRequest } from './api.js';
+import { apiRequest, setUnauthorizedHandler } from './api.js';
 
 const AuthContext = createContext(null);
 
@@ -8,12 +8,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setUnauthorizedHandler(() => setUser(null));
     apiRequest('/auth/me')
       .then(({ user: currentUser }) => setUser(currentUser))
       .catch((error) => {
+        setUser(null);
         if (error.status !== 401) console.error(error);
       })
       .finally(() => setLoading(false));
+
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   async function login(username, password) {
@@ -21,13 +25,19 @@ export function AuthProvider({ children }) {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
-    setUser(data.user);
-    return data.user;
+    // Confirm that the browser retained the backend session cookie before the
+    // authenticated UI is rendered (important for cross-site Safari behavior).
+    const { user: verifiedUser } = await apiRequest('/auth/me');
+    setUser(verifiedUser);
+    return verifiedUser;
   }
 
   async function logout() {
-    await apiRequest('/auth/logout', { method: 'POST' });
-    setUser(null);
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    } finally {
+      setUser(null);
+    }
   }
 
   return (

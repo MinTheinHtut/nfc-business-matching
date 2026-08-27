@@ -1,7 +1,8 @@
 import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
-import { sessionLifetimeMs, sessionStore } from './config/session-store.js';
+import { sessionCookieName, sessionCookieOptions } from './config/session-cookie.js';
+import { sessionStore } from './config/session-store.js';
 import adminCompanyRouter from './routes/admin-company.routes.js';
 import adminNfcRouter from './routes/admin-nfc.routes.js';
 import authRouter from './routes/auth.routes.js';
@@ -39,17 +40,14 @@ app.use(
 app.use(express.json());
 app.use(
   session({
-    name: 'nfc.sid',
+    name: sessionCookieName,
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: 1000 * 60 * 60 * 8,
-},
+    // Netlify and the hosted API use different sites, so production cookies
+    // must explicitly opt in to cross-site credentialed requests over HTTPS.
+    cookie: sessionCookieOptions,
   }),
 );
 

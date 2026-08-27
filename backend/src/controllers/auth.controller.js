@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import pool from '../config/database.js';
+import { sessionCookieClearOptions, sessionCookieName } from '../config/session-cookie.js';
 
 function publicUser(user) {
   return {
@@ -49,7 +50,7 @@ export async function login(request, response, next) {
 export function logout(request, response, next) {
   request.session.destroy((error) => {
     if (error) return next(error);
-    response.clearCookie('nfc.sid');
+    response.clearCookie(sessionCookieName, sessionCookieClearOptions);
     return response.json({ success: true });
   });
 }

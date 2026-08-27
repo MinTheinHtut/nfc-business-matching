@@ -5,7 +5,8 @@ import { requireAuth } from '../middleware/auth.middleware.js';
 const router = Router();
 
 router.post('/login', login);
-router.post('/logout', requireAuth, logout);
+// Logout is idempotent: even an expired session should clear the browser cookie.
+router.post('/logout', logout);
 router.get('/me', requireAuth, getCurrentUser);
 
 export default router;
