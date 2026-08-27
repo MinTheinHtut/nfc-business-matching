@@ -45,8 +45,7 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    // Netlify and the hosted API use different sites, so production cookies
-    // must explicitly opt in to cross-site credentialed requests over HTTPS.
+    // Browser requests reach the API through Netlify's same-origin proxy.
     cookie: sessionCookieOptions,
   }),
 );

@@ -5,7 +5,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export const sessionCookieOptions = {
   httpOnly: true,
-  sameSite: isProduction ? 'none' : 'lax',
+  // Production browser requests go through the same-origin Netlify /api proxy,
+  // so Lax is sufficient and avoids relying on third-party-cookie support.
+  sameSite: 'lax',
   secure: isProduction,
   maxAge: sessionLifetimeMs,
   path: '/',

@@ -87,17 +87,16 @@ deployed frontend origin on Netlify; the database continues to store only the to
 ## Netlify frontend deployment
 
 Netlify is configured by `netlify.toml` to build from `frontend` with
-`npm run build` and publish `frontend/dist`. The SPA fallback in
-`frontend/public/_redirects` allows client-side routes such as `/login`, `/admin`,
-and `/company/:token` to be opened directly. For a manual deploy, upload the
+`npm run build` and publish `frontend/dist`. That file proxies `/api/*` to the
+hosted backend before applying the SPA fallback, allowing client-side routes
+such as `/login`, `/admin`, and
+`/company/:token` to be opened directly. For a manual deploy, upload the
 contents of `frontend/dist` after running the frontend build.
 
 `VITE_API_URL=http://localhost:3000/api` is suitable only for local development.
-Setting that value on Netlify does not expose a computer's local Express server to
-the deployed site or to other devices. Until the backend is hosted separately, the
-Netlify deployment is intended to verify the frontend build, UI, SPA routing, and
-company URL handling; API-backed login, dashboards, and confirmation actions will
-not work online. No backend or database deployment is included in this phase.
+Production builds intentionally use same-origin `/api` regardless of this variable,
+so remove any old direct-backend value from Netlify. Netlify forwards those requests
+to the deployed Render backend according to `netlify.toml`.
 
 ## Production readiness
 
@@ -126,17 +125,17 @@ Configure these environment variables in the hosting dashboard:
 - `DB_SSL` and `DB_SSL_CA_PATH`
 - `SESSION_SECRET` set to a strong, unique production value
 - `SESSION_STORE=mysql`
-- `FRONTEND_URL=https://s-matching.netlify.app`
+- `FRONTEND_URL=https://nfc-business-matching.netlify.app`
 
 The server listens on `0.0.0.0` and the configured `PORT`. `GET /api/health`
 checks the Node service without contacting MySQL; `GET /api/db-test` separately
 checks database connectivity. Errors returned to clients do not include database
 credentials or stack traces.
 
-Production enables Express `trust proxy`, secure cookies, and `SameSite=None` so
-the Netlify frontend can make credentialed requests to an HTTPS API on another
-site. CORS accepts only the exact `FRONTEND_URL` origin and enables credentials.
-The frontend must use the hosted API's `/api` URL through `VITE_API_URL`.
+Production enables Express `trust proxy` and secure `SameSite=Lax` cookies. The
+browser calls same-origin `/api`; Netlify proxies it to the hosted API, avoiding
+Safari's third-party-cookie restrictions. CORS remains restricted to the exact
+`FRONTEND_URL` origin with credentials enabled.
 
 Sessions use `express-mysql-session` and the existing MySQL connection pool. The
 store automatically creates a dedicated `sessions` table, keeps records for the
@@ -195,7 +194,7 @@ DB_SSL=true
 DB_SSL_CA_PATH=/etc/secrets/aiven-ca.pem
 SESSION_SECRET=<strong random secret>
 SESSION_STORE=mysql
-FRONTEND_URL=https://s-matching.netlify.app
+FRONTEND_URL=https://nfc-business-matching.netlify.app
 ```
 
 `/api/health` is Render's service health check and intentionally does not contact
@@ -214,12 +213,11 @@ the shared application/session pool and keeps TLS certificate verification enabl
 Startup fails if SSL is enabled without a readable, non-empty CA file. Local XAMPP
 continues using `DB_SSL=false` and does not require a certificate.
 
-Render will eventually provide a URL similar to
-`https://nfc-business-matching-api.onrender.com`. After the real URL exists, set
-Netlify's frontend variable to a value such as
-`VITE_API_URL=https://nfc-business-matching-api.onrender.com/api` and rebuild the
-frontend. This example hostname is documentation only and is not hardcoded into
-the application.
+The deployed backend is `https://nfc-business-matching.onrender.com`. Netlify's
+rewrite sends `/api/:splat` to that service's `/api/:splat`. Production frontend
+builds always use the same-origin `/api` base, so remove any old hosted-backend
+value for `VITE_API_URL` from Netlify (or set it to `/api` for clarity). Local
+development may continue using `VITE_API_URL=http://localhost:3000/api`.
 
 ## Verification queries
 

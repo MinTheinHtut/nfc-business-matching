@@ -1,5 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL
-  || (import.meta.env.DEV ? 'http://localhost:3000/api' : '/api');
+// Production always uses Netlify's same-origin API proxy. This prevents a stale
+// VITE_API_URL from silently restoring cross-site cookies or duplicating /api.
+const API_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:3000/api')
+  : '/api';
 
 let unauthorizedHandler = null;
 
